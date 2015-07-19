@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 
 public class TP_Animator : MonoBehaviour 
@@ -63,5 +63,7 @@ public class TP_Animator : MonoBehaviour
       MoveDirection = Direction.Right;
     else 
       MoveDirection = Direction.Stationary;
-  }
+
+  } // End of DetermineCurrentMoveDirection()
+
 }

@@ -1,6 +1,12 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 
+/*
+ * Takes in its own set of input. separate from TP_Controller. 
+ * Only use mouse to rotate camera around target.
+ * Also use mouse scroll to move camera in and out.
+ * Takes control of main camera or creates one if it doesn't exist.
+ */
 public class TP_Camera : MonoBehaviour
 {
 

@@ -1,290 +1,193 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
 
+/*
+ * Process motion data received from TP_Controller
+ * Make things based on seconds not computer cycles
+ * Solves Fast Diagonals *** //mark where later
+ * Maintain character's rotation relative to the camera.
+ * All motion relative to where camera is facing.
+ */
 public class TP_Motor : MonoBehaviour
 {
+    public static TP_Motor Instance;
 
-  public static TP_Motor Instance;
+    public int baseNumOfJumps = 2;        // My custom addition
+    public int numOfJumps;                // My custom addition
+    public float Gravity = 31f;
+    public float JumpSpeed = 6f;
+    public float SlideSpeed = 10f;
+    public float ForwardSpeed = 10f;
+    public float BackwardSpeed = 2f;
+    public float StrafingSpeed = 5f;
+    public float SlideThreshold = 0.6f;
+    public float TerminalVelocity = 20f;
+    public float MaxControllableSlideMagnitude = 0.4f;
 
-  public bool InfiniteJumps = false;
-  private bool currentlyDashing = false;
+    private Vector3 slideDirection;
 
-  public float dashBar = 100;
-  public float dashRechargeRate = 0.5f;
-  public float ForwardSpeed = 10f;
-  public float BackwardSpeed = 2f;
-  public float StrafingSpeed = 5f;
-  public float SlideSpeed = 10f;
-  public float JumpSpeed = 6f;
-  public float Gravity = 31f;
-  public float TerminalVelocity = 20f;
-  public float SlideThreshold = 0.6f;
-  public float MaxControllableSlideMagnitude = 0.4f;
+    public Vector3 MoveVector { get; set; }
+    public float VerticalVelocity { get; set; }
 
-  public int numOfJumps;
-  public int baseNumOfJumps;
-
-  private Vector3 slideDirection;
-
-  public Vector3 MoveVector { get; set; }
-  public float VerticalVelocity { get; set; }
-
-  void Awake()
-  {
-    Instance = this;
-  }
-
-  public void UpdateMotor()
-  {
-    if (!currentlyDashing)
-      rechargeDashBar();
-
-    SnapAllignCharacterWithCamera();
-    ProcessMotion();
-
-    if (TP_Controller.CharacterController.isGrounded)
-      numOfJumps = baseNumOfJumps;
-  }
-
-  void ProcessMotion()
-  {
-    //Transform movevector into worldspace relative to our character;s rotation
-    MoveVector = transform.TransformDirection(MoveVector);
-
-    //then normalize our movevector if our magnitude is greater than 0, fixes diagonals
-    if (MoveVector.magnitude > 1)
-      MoveVector = Vector3.Normalize(MoveVector);
-
-    //Apply sliding important placement
-    //ApplySlide();
-
-    //Multiply movevector by movespeed
-    MoveVector *= MoveSpeed();// now a method, transmission
-
-    //multiply  movevector by delta.time for value per second than per frame
-    //MoveVector *= Time.deltaTime;//moved down, was for clarification
-
-    //Reapply Vertical Velocity.y
-    MoveVector = new Vector3(MoveVector.x, VerticalVelocity, MoveVector.z);
-
-    //Apply gravity
-    ApplyGravity();
-
-    //move the character in worldspace
-    TP_Controller.CharacterController.Move(MoveVector * Time.deltaTime);
-  }
-
-  void ApplyGravity()
-  {
-    if (MoveVector.y > -TerminalVelocity)
-      MoveVector = new Vector3(MoveVector.x, MoveVector.y - Gravity * Time.deltaTime, MoveVector.z);
-
-    if (TP_Controller.CharacterController.isGrounded && MoveVector.y < -1)
-      MoveVector = new Vector3(MoveVector.x, -1, MoveVector.z);
-  }
-
-  void ApplySlide()
-  {
-    if (!TP_Controller.CharacterController.isGrounded)//if not grounded do nothing
-      return;
-
-    slideDirection = Vector3.zero;
-
-    RaycastHit hitInfo;
-
-    //cast from 0,1,0 to 0,-1,0 and put out into hitInfo
-    if (Physics.Raycast(transform.position + Vector3.up, Vector3.down, out hitInfo))
+    void Awake()
     {
-      Debug.DrawLine(transform.position + Vector3.up, Vector3.down);
-
-      if (hitInfo.normal.y < SlideThreshold)
-        slideDirection = new Vector3(hitInfo.normal.x, -hitInfo.normal.y, hitInfo.normal.z);
+        Instance = this;
     }
 
-    if (slideDirection.magnitude < MaxControllableSlideMagnitude)
+    public void UpdateMotor()
     {
-      MoveVector += slideDirection;
+        SnapAllignCharacterWithCamera();
+        ProcessMotion();
+
+        if (TP_Controller.CharacterController.isGrounded)
+            numOfJumps = baseNumOfJumps;
     }
-    else
+
+    void ProcessMotion()
     {
-      MoveVector = slideDirection;
+        // Transform MoveVector into WorldSpace relative to our character's rotation
+        MoveVector = transform.TransformDirection(MoveVector);
+
+        // Then normalize our movevector if our magnitude is greater than 0, Fixes diagonal speed problem
+        if (MoveVector.magnitude > 1)
+            MoveVector = Vector3.Normalize(MoveVector);
+
+        // Apply sliding important placement
+        // ApplySlide();
+
+        // Multiply movevector by movespeed
+        MoveVector *= MoveSpeed();// Now a method, transmission
+        // ^### could apply dash methodology here, save loves of code?
+
+        // multiply  movevector by delta.time for value per second than per frame
+        // MoveVector *= Time.deltaTime;//moved down, was for clarification
+
+        // Reapply Vertical Velocity.y
+        MoveVector = new Vector3(MoveVector.x, VerticalVelocity, MoveVector.z);
+
+        // Apply gravity
+        ApplyGravity();
+
+        // Move the character in worldspace
+        TP_Controller.CharacterController.Move(MoveVector * Time.deltaTime); // Meters per frame update to meters per second <- Time.deltaTime
+
+    } // End of ProcessMotion()
+
+    void ApplyGravity()
+    {
+        if (MoveVector.y > -TerminalVelocity)
+            MoveVector = new Vector3(MoveVector.x, MoveVector.y - Gravity * Time.deltaTime, MoveVector.z);
+
+        if (TP_Controller.CharacterController.isGrounded && MoveVector.y < -1)
+            MoveVector = new Vector3(MoveVector.x, -1, MoveVector.z);
     }
 
-  }
-
-  public void Jump()
-  {
-    if (numOfJumps > 0)
+    void ApplySlide()
     {
-      if (InfiniteJumps == false)
-        numOfJumps--;
+        if (!TP_Controller.CharacterController.isGrounded)//if not grounded do nothing
+            return;
 
-      VerticalVelocity = JumpSpeed;
-    }
-  }
+        slideDirection = Vector3.zero;
 
-  void SnapAllignCharacterWithCamera()
-  {
-    if (MoveVector.x != 0 || MoveVector.z != 0)
-    {
-      transform.rotation = Quaternion.Euler(transform.eulerAngles.x,
-    Camera.main.transform.eulerAngles.y,
-    transform.eulerAngles.z);
-    }
-  }
+        RaycastHit hitInfo;
 
-  float MoveSpeed()
-  {
-    var moveSpeed = 0f;//local var, need f
-
-    switch (TP_Animator.Instance.MoveDirection)
-    {
-      case TP_Animator.Direction.Stationary:
-        //moveSpeed /= 1.09f;
-        moveSpeed = 0;
-        currentlyDashing = false;
-        break;
-
-      case TP_Animator.Direction.Forward:
-
-        //if (Input.GetKey(KeyCode.LeftShift) || (Input.GetButton("Dash"))) // For XBOX controller
-        if (Input.GetKey(KeyCode.LeftShift))
+        //cast from 0,1,0 to 0,-1,0 and put out into hitInfo
+        if (Physics.Raycast(transform.position + Vector3.up, Vector3.down, out hitInfo))
         {
-          moveSpeed = doDash(ForwardSpeed);
+            Debug.DrawLine(transform.position + Vector3.up, Vector3.down);
+
+            if (hitInfo.normal.y < SlideThreshold)
+                slideDirection = new Vector3(hitInfo.normal.x, -hitInfo.normal.y, hitInfo.normal.z);
+        }
+
+        if (slideDirection.magnitude < MaxControllableSlideMagnitude)
+        {
+            MoveVector += slideDirection;
         }
         else
         {
-          moveSpeed = ForwardSpeed;
-          currentlyDashing = false;
-        }
-        break;
-
-      case TP_Animator.Direction.Backward:
-
-        if (Input.GetKey(KeyCode.LeftShift))
-        {
-          moveSpeed = doDash(BackwardSpeed);
-        }
-        else
-        {
-          moveSpeed = BackwardSpeed;
-          currentlyDashing = false;
+            MoveVector = slideDirection;
         }
 
-        break;
+    } // End of ApplySlide()
 
-      case TP_Animator.Direction.Left:
-
-        if (Input.GetKey(KeyCode.LeftShift))
-        {
-          moveSpeed = doDash(StrafingSpeed);
-        }
-        else
-        {
-          moveSpeed = StrafingSpeed;
-          currentlyDashing = false;
-        }
-
-        break;
-
-      case TP_Animator.Direction.Right:
-
-        if (Input.GetKey(KeyCode.LeftShift))
-        {
-          moveSpeed = doDash(StrafingSpeed);
-        }
-        else
-        {
-          moveSpeed = StrafingSpeed;
-          currentlyDashing = false;
-        }
-
-        break;
-
-      case TP_Animator.Direction.LeftForward:
-
-        if (Input.GetKey(KeyCode.LeftShift))
-        {
-          moveSpeed = doDash(ForwardSpeed);
-        }
-        else
-        {
-          moveSpeed = ForwardSpeed;
-          currentlyDashing = false;
-        }
-        break;
-
-      case TP_Animator.Direction.RightForward:
-
-        if (Input.GetKey(KeyCode.LeftShift))
-        {
-          moveSpeed = doDash(ForwardSpeed);
-        }
-        else
-        {
-          moveSpeed = ForwardSpeed;
-          currentlyDashing = false;
-        }
-        break;
-
-
-      case TP_Animator.Direction.LeftBackward:
-
-        if (Input.GetKey(KeyCode.LeftShift))
-        {
-          moveSpeed = doDash(BackwardSpeed);
-        }
-        else
-        {
-          moveSpeed = ForwardSpeed;
-          currentlyDashing = false;
-        }
-        break;
-
-      case TP_Animator.Direction.RightBackward:
-
-        if (Input.GetKey(KeyCode.LeftShift))
-        {
-          moveSpeed = doDash(BackwardSpeed);
-        }
-        else
-        {
-          moveSpeed = ForwardSpeed;
-          currentlyDashing = false;
-        }
-        break;
-
-    }
-
-    if (slideDirection.magnitude > 0)
-      moveSpeed = SlideSpeed;
-
-    return moveSpeed;
-
-  }
-
-  void rechargeDashBar()
-  {
-    if (dashBar <= 100)
+    public void Jump()
     {
-      dashBar += dashRechargeRate;//when not dashing
+        if (numOfJumps > 0)
+        {
+            numOfJumps--;
+            VerticalVelocity = JumpSpeed;
+        }
     }
-  }
 
-  public float doDash(float speedToIncrease)
-  {
-    if (dashBar > 0)
+    void SnapAllignCharacterWithCamera()
     {
-      currentlyDashing = true;
-      speedToIncrease *= 3;
-      dashBar--;
-      return speedToIncrease;
+        // If we are we moving, rotate this object to match MainCamera's Y-rotation.
+        // Possibly remove if and lerp the rotation to always math MainCamera rotation.
+        if (MoveVector.x != 0 || MoveVector.z != 0)
+            transform.rotation = Quaternion.Euler(transform.eulerAngles.x, Camera.main.transform.eulerAngles.y, transform.eulerAngles.z);
     }
-    else
+
+    float MoveSpeed()
     {
-      return speedToIncrease;
-    }
-  }
+        var moveSpeed = 0f; // Local var, need
+
+        switch (TP_Animator.Instance.MoveDirection)
+        {
+            case TP_Animator.Direction.Stationary:
+                //moveSpeed /= 1.09f;
+                // Lerp moveSpeed to zero for smoother zeroing motion?
+                moveSpeed = 0;
+                break;
+
+            case TP_Animator.Direction.Forward:
+
+                moveSpeed = ForwardSpeed;
+                break;
+
+            case TP_Animator.Direction.Backward:
+
+                moveSpeed = BackwardSpeed;
+                break;
+
+            case TP_Animator.Direction.Left:
+
+                moveSpeed = StrafingSpeed;
+                break;
+
+            case TP_Animator.Direction.Right:
+
+                moveSpeed = StrafingSpeed;
+                break;
+
+            case TP_Animator.Direction.LeftForward:
+
+                moveSpeed = ForwardSpeed;
+                break;
+
+            case TP_Animator.Direction.RightForward:
+
+                moveSpeed = ForwardSpeed;
+                break;
+
+
+            case TP_Animator.Direction.LeftBackward:
+
+                moveSpeed = ForwardSpeed;
+                break;
+
+            case TP_Animator.Direction.RightBackward:
+
+                moveSpeed = ForwardSpeed;
+                break;
+        }
+
+        if (slideDirection.magnitude > 0)
+            moveSpeed = SlideSpeed;
+
+        return moveSpeed;
+
+    } // End of MoveSpeed()
 
 }//End of class

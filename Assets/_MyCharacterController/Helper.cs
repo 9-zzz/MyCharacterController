@@ -1,5 +1,14 @@
-﻿using UnityEngine;
+using UnityEngine;
 
+/*
+ * Clamp to min max angle, only job to take in angle
+ * Will be used in TP_Camera to restrict rotation
+ * about the vertical, so we can't make the camera
+ * upside-down. 
+ * To prevent Gimbal Lock: 
+ * "Gimbal lock is the loss of one degree of freedom 
+ * in a three-dimensional"
+ */
 public static class Helper
 {
   public struct ClipPlanePoints
