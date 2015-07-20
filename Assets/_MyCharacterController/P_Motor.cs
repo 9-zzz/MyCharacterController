@@ -9,26 +9,26 @@ using System.Collections;
  * Maintain character's rotation relative to the camera.
  * All motion relative to where camera is facing.
  */
-public class TP_Motor : MonoBehaviour
+public class P_Motor : MonoBehaviour
 {
-    public static TP_Motor Instance;
+    public static P_Motor Instance;
 
     public int baseNumOfJumps = 2;        // My custom addition
     public int numOfJumps;                // My custom addition
     public float Gravity = 31f;
+    public float TerminalVelocity = 20f; // Max speed at which gravity can be applied
     public float JumpSpeed = 6f;
     public float SlideSpeed = 10f;
     public float ForwardSpeed = 10f;
     public float BackwardSpeed = 2f;
     public float StrafingSpeed = 5f;
     public float SlideThreshold = 0.6f;
-    public float TerminalVelocity = 20f;
     public float MaxControllableSlideMagnitude = 0.4f;
 
     private Vector3 slideDirection;
 
     public Vector3 MoveVector { get; set; }
-    public float VerticalVelocity { get; set; }
+    public float VerticalVelocity { get; set; } // Jetpack variable?
 
     void Awake()
     {
@@ -37,11 +37,8 @@ public class TP_Motor : MonoBehaviour
 
     public void UpdateMotor()
     {
-        SnapAllignCharacterWithCamera();
-        ProcessMotion();
-
-        if (TP_Controller.CharacterController.isGrounded)
-            numOfJumps = baseNumOfJumps;
+        SnapAllignCharacterWithCamera(); // 1st
+        ProcessMotion();                 // 2nd
     }
 
     void ProcessMotion()
@@ -66,11 +63,10 @@ public class TP_Motor : MonoBehaviour
         // Reapply Vertical Velocity.y
         MoveVector = new Vector3(MoveVector.x, VerticalVelocity, MoveVector.z);
 
-        // Apply gravity
         ApplyGravity();
 
         // Move the character in worldspace
-        TP_Controller.CharacterController.Move(MoveVector * Time.deltaTime); // Meters per frame update to meters per second <- Time.deltaTime
+        P_Controller.CharacterController.Move(MoveVector * Time.deltaTime); // Meters per frame update to meters per second <- Time.deltaTime
 
     } // End of ProcessMotion()
 
@@ -79,20 +75,20 @@ public class TP_Motor : MonoBehaviour
         if (MoveVector.y > -TerminalVelocity)
             MoveVector = new Vector3(MoveVector.x, MoveVector.y - Gravity * Time.deltaTime, MoveVector.z);
 
-        if (TP_Controller.CharacterController.isGrounded && MoveVector.y < -1)
+        if (P_Controller.CharacterController.isGrounded && MoveVector.y < -1)
             MoveVector = new Vector3(MoveVector.x, -1, MoveVector.z);
     }
 
     void ApplySlide()
     {
-        if (!TP_Controller.CharacterController.isGrounded)//if not grounded do nothing
+        if (!P_Controller.CharacterController.isGrounded)//if not grounded do nothing
             return;
 
         slideDirection = Vector3.zero;
 
         RaycastHit hitInfo;
 
-        //cast from 0,1,0 to 0,-1,0 and put out into hitInfo
+        //cast from 0,1,0 + trans pos, to 0,-1,0 and put out into hitInfo
         if (Physics.Raycast(transform.position + Vector3.up, Vector3.down, out hitInfo))
         {
             Debug.DrawLine(transform.position + Vector3.up, Vector3.down);
@@ -114,6 +110,9 @@ public class TP_Motor : MonoBehaviour
 
     public void Jump()
     {
+        if (P_Controller.CharacterController.isGrounded) // On every jump check to see if grounded???
+            numOfJumps = baseNumOfJumps;
+
         if (numOfJumps > 0)
         {
             numOfJumps--;
@@ -133,52 +132,44 @@ public class TP_Motor : MonoBehaviour
     {
         var moveSpeed = 0f; // Local var, need
 
-        switch (TP_Animator.Instance.MoveDirection)
+        switch (P_Animator.Instance.MoveDirection)
         {
-            case TP_Animator.Direction.Stationary:
+            case P_Animator.Direction.Stationary:
                 //moveSpeed /= 1.09f;
                 // Lerp moveSpeed to zero for smoother zeroing motion?
                 moveSpeed = 0;
                 break;
 
-            case TP_Animator.Direction.Forward:
-
+            case P_Animator.Direction.Forward:
                 moveSpeed = ForwardSpeed;
                 break;
 
-            case TP_Animator.Direction.Backward:
-
+            case P_Animator.Direction.Backward:
                 moveSpeed = BackwardSpeed;
                 break;
 
-            case TP_Animator.Direction.Left:
-
+            case P_Animator.Direction.Left:
                 moveSpeed = StrafingSpeed;
                 break;
 
-            case TP_Animator.Direction.Right:
-
+            case P_Animator.Direction.Right:
                 moveSpeed = StrafingSpeed;
                 break;
 
-            case TP_Animator.Direction.LeftForward:
-
+            case P_Animator.Direction.LeftForward:
                 moveSpeed = ForwardSpeed;
                 break;
 
-            case TP_Animator.Direction.RightForward:
-
+            case P_Animator.Direction.RightForward:
                 moveSpeed = ForwardSpeed;
                 break;
 
 
-            case TP_Animator.Direction.LeftBackward:
-
+            case P_Animator.Direction.LeftBackward:
                 moveSpeed = ForwardSpeed;
                 break;
 
-            case TP_Animator.Direction.RightBackward:
-
+            case P_Animator.Direction.RightBackward:
                 moveSpeed = ForwardSpeed;
                 break;
         }

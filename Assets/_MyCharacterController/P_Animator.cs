@@ -1,7 +1,7 @@
 using UnityEngine;
 using System.Collections;
 
-public class TP_Animator : MonoBehaviour 
+public class P_Animator : MonoBehaviour 
 {
   public enum Direction
   {
@@ -9,7 +9,7 @@ public class TP_Animator : MonoBehaviour
       LeftForward, RightForward, LeftBackward, RightBackward
 	}
 
-  public static TP_Animator Instance;
+  public static P_Animator Instance;
 
   public Direction MoveDirection { get; set; }
 
@@ -30,13 +30,13 @@ public class TP_Animator : MonoBehaviour
     var left = false;
     var right = false;
 
-    if (TP_Motor.Instance.MoveVector.z > 0)
+    if (P_Motor.Instance.MoveVector.z > 0)
       forward = true;
-    if (TP_Motor.Instance.MoveVector.z < 0)
+    if (P_Motor.Instance.MoveVector.z < 0)
       backward = true;
-    if (TP_Motor.Instance.MoveVector.x > 0)
+    if (P_Motor.Instance.MoveVector.x > 0)
       right = true;
-    if (TP_Motor.Instance.MoveVector.x < 0)
+    if (P_Motor.Instance.MoveVector.x < 0)
       left = true;
 
     if (forward)
