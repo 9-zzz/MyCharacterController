@@ -32,6 +32,7 @@ public class P_Motor : MonoBehaviour
 
     void Awake()
     {
+        numOfJumps = baseNumOfJumps;
         Instance = this;
     }
 
@@ -51,7 +52,7 @@ public class P_Motor : MonoBehaviour
             MoveVector = Vector3.Normalize(MoveVector);
 
         // Apply sliding important placement
-        // ApplySlide();
+        ApplySlide();
 
         // Multiply movevector by movespeed
         MoveVector *= MoveSpeed();// Now a method, transmission
@@ -76,7 +77,10 @@ public class P_Motor : MonoBehaviour
             MoveVector = new Vector3(MoveVector.x, MoveVector.y - Gravity * Time.deltaTime, MoveVector.z);
 
         if (P_Controller.CharacterController.isGrounded && MoveVector.y < -1)
+        {
             MoveVector = new Vector3(MoveVector.x, -1, MoveVector.z);
+            numOfJumps = baseNumOfJumps; // My addition for double jumping and resetting jumps.
+        }
     }
 
     void ApplySlide()
@@ -110,14 +114,13 @@ public class P_Motor : MonoBehaviour
 
     public void Jump()
     {
-        if (P_Controller.CharacterController.isGrounded) // On every jump check to see if grounded???
-            numOfJumps = baseNumOfJumps;
-
         if (numOfJumps > 0)
         {
-            numOfJumps--;
             VerticalVelocity = JumpSpeed;
+            numOfJumps--;
         }
+
+        //if (numOfJumps > 0) { numOfJumps--; VerticalVelocity = JumpSpeed; }
     }
 
     void SnapAllignCharacterWithCamera()

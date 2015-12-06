@@ -14,7 +14,6 @@ GameObject:
   - 114: {fileID: 11443538}
   - 114: {fileID: 11445182}
   - 114: {fileID: 11449726}
-  - 114: {fileID: 11492614}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -35,7 +34,9 @@ GameObject:
   - 124: {fileID: 12426268}
   - 81: {fileID: 8156928}
   - 114: {fileID: 11442188}
-  - 114: {fileID: 11451760}
+  - 114: {fileID: 11455908}
+  - 114: {fileID: 11404146}
+  - 114: {fileID: 11480772}
   m_Layer: 2
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -124,6 +125,7 @@ Camera:
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
+  m_TargetEye: 3
   m_HDR: 0
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
@@ -175,6 +177,23 @@ Behaviour:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 154854}
   m_Enabled: 1
+--- !u!114 &11404146
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 154854}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4975a6e437fc3b149a8cd508ce5bdd69, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  threshold: .25
+  intensity: .75
+  blurSize: 1
+  blurIterations: 1
+  blurType: 0
+  fastBloomShader: {fileID: 4800000, guid: 68a00c837b82e4c6d92e7da765dc5f1d, type: 3}
 --- !u!114 &11442188
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -197,13 +216,17 @@ MonoBehaviour:
   Y_MouseSensitivity: 5
   X_StickSensitivity: 2.5
   Y_StickSensitivity: 2.5
-  MouseWheelSensitivity: 5
+  MouseWheelSensitivity: 15
   X_Smooth: .0500000007
   Y_Smooth: .100000001
   Y_MinLimit: -40
   Y_MaxLimit: 80
   OcclusionDistanceStep: .5
   MaxOcclusionChecks: 10
+  camTransform: {fileID: 0}
+  shake: 0
+  shakeAmount: .699999988
+  decreaseFactor: 1
 --- !u!114 &11443538
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -217,13 +240,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   baseNumOfJumps: 2
   numOfJumps: 0
-  Gravity: 9.80000019
+  Gravity: 50
   TerminalVelocity: 56
-  JumpSpeed: 20
+  JumpSpeed: 40
   SlideSpeed: 10
-  ForwardSpeed: 10
+  ForwardSpeed: 15
   BackwardSpeed: 10
-  StrafingSpeed: 8
+  StrafingSpeed: 15
   SlideThreshold: .600000024
   MaxControllableSlideMagnitude: .400000006
 --- !u!114 &11445182
@@ -249,31 +272,44 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bdc59246c7e7e264eb418612e10ce6b8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &11451760
+--- !u!114 &11455908
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 154854}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 80c9e508df191e94aafc0ae995f6d57b, type: 3}
+  m_Script: {fileID: 11500000, guid: 646b5bc27a658f447b1d929fd5ffbd70, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &11492614
+  mode: 1
+  showGeneratedNormals: 0
+  offsetScale: .200000003
+  blurRadius: 18
+  edgeThresholdMin: .0500000007
+  edgeThreshold: .200000003
+  edgeSharpness: 4
+  dlaaSharp: 0
+  ssaaShader: {fileID: 4800000, guid: b3728d1488b02490cbd196c7941bf1f8, type: 3}
+  dlaaShader: {fileID: 4800000, guid: 017ca72b9e8a749058d13ebd527e98fa, type: 3}
+  nfaaShader: {fileID: 4800000, guid: ce0cb2621f6d84e21a87414e471a3cce, type: 3}
+  shaderFXAAPreset2: {fileID: 4800000, guid: 6f1418cffd12146f2a83be795f6fa5a7, type: 3}
+  shaderFXAAPreset3: {fileID: 4800000, guid: c182fa94a5a0a4c02870641efcd38cd5, type: 3}
+  shaderFXAAII: {fileID: 4800000, guid: cd5b323dcc592457790ff18b528f5e67, type: 3}
+  shaderFXAAIII: {fileID: 4800000, guid: c547503fff0e8482ea5793727057041c, type: 3}
+--- !u!114 &11480772
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 143548}
+  m_GameObject: {fileID: 154854}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 485b254e2762c944c8bcb42af605672c, type: 3}
+  m_Script: {fileID: 11500000, guid: 55d09cd8b0bf9b0419b5964e9b4aedbd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  fuel: 2
-  maxFuel: 2
-  isAirbourne: 0
+  isLocked: 0
 --- !u!124 &12426268
 Behaviour:
   m_ObjectHideFlags: 1

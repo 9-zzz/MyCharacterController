@@ -13,6 +13,7 @@ public class Jetpack : MonoBehaviour
 
     void Awake()
     {
+        Helper.TestFunction();
         S = this;
     }
 

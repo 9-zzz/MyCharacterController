@@ -45,9 +45,27 @@ public class P_Camera : MonoBehaviour
     private float distanceSmooth = 0f;
     private float preOccludedDistance = 0f;
 
+    // CAMERA SHAKE ###################
+    // Transform of the camera to shake. Grabs the gameObject's transform if null.
+    public Transform camTransform;
+    // How long the object should shake for.
+    public float shake = 0f;
+    // Amplitude of the shake. A larger value shakes the camera harder.
+    public float shakeAmount = 0.7f;
+    public float decreaseFactor = 1.0f;
+    Vector3 originalPos;
+    // CAMERA SHAKE ###################
+
     void Awake()
     {
         Instance = this;
+
+        // CAMERA SHAKE ###################
+        if (camTransform == null)
+        {
+            camTransform = GetComponent(typeof(Transform)) as Transform;
+        }
+        // CAMERA SHAKE ###################
     }
 
     void Start()
@@ -225,6 +243,18 @@ public class P_Camera : MonoBehaviour
         // MainCamera's position in world, and lookAt point set to these
         transform.position = position; // Above position calculated
         transform.LookAt(TargetLookAt);
+
+        if (shake > 0)
+        {
+            //camTransform.localPosition = originalPos + Random.insideUnitSphere * shakeAmount;
+            camTransform.localPosition += Random.insideUnitSphere * shakeAmount;			// So I can still have the camera follow the player.
+            shake -= Time.deltaTime * decreaseFactor;
+        }
+        else
+        {
+            shake = 0f;
+            //camTransform.localPosition = originalPos;						// Again, to enable camera player following.
+        }
     }
 
     public void Reset()
