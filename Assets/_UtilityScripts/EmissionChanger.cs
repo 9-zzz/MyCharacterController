@@ -31,7 +31,7 @@ public class EmissionChanger : MonoBehaviour
         if (Input.GetKey(KeyCode.C))
         {
             emCol = Color.Lerp(emCol, newEmCol, (1.7f * Time.deltaTime));
-            P_Camera.Instance.shake = 2;
+            //P_Camera.Instance.shake = 2;
         }
         else
         {

@@ -42,7 +42,7 @@ public class ClickHideCursor : MonoBehaviour
         }
 
         // When player press escape
-        if (Input.GetKeyDown(KeyCode.Escape))
+        if (Input.GetKeyDown(KeyCode.Escape) && isLocked)
         {
             //reverse variable isLocked
             //if variable isLocked is true, then it goes to false
